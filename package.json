@@ -1,0 +1,28 @@
+{
+  "name": "exam-monitor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Production-ready driving exam availability monitoring application",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@12.4.2",
+  "scripts": {
+    "build": "pnpm -r --filter=!tests run build",
+    "dev": "pnpm -r --parallel run dev",
+    "dev:api": "pnpm --filter=@exam-monitor/api dev",
+    "dev:worker": "pnpm --filter=@exam-monitor/worker dev",
+    "dev:web": "pnpm --filter=@exam-monitor/web dev",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "pnpm -r run typecheck",
+    "lint": "pnpm -r run lint",
+    "db:generate": "pnpm --filter=@exam-monitor/database db:generate",
+    "db:migrate": "pnpm --filter=@exam-monitor/database db:migrate"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  }
+}
