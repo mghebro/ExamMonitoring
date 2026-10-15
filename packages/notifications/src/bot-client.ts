@@ -115,6 +115,15 @@ export class TelegramBotClient {
   }
 
   /**
+   * Delete Webhook (required before switching to Long Polling)
+   */
+  async deleteWebhook(): Promise<boolean> {
+    const response = await fetch(`${this.baseUrl}/deleteWebhook`);
+    const body = (await response.json()) as any;
+    return !!body.ok;
+  }
+
+  /**
    * Fetch updates using Long Polling (for local development or polling worker mode)
    */
   async getUpdates(offset?: number, limit = 100, timeout = 10): Promise<TelegramUpdate[]> {

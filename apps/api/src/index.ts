@@ -1,5 +1,11 @@
 import { validateConfig, ApiConfigSchema } from "@exam-monitor/config";
 import { closeDatabaseConnection } from "@exam-monitor/database";
+import {
+  TelegramBotClient,
+  TelegramLinkingService,
+  TelegramCommandRouter,
+  TelegramPollingReceiver,
+} from "@exam-monitor/notifications";
 import { logger } from "@exam-monitor/shared";
 import { buildApp } from "./app.js";
 
@@ -11,8 +17,22 @@ async function main() {
   const config = validateConfig(ApiConfigSchema, process.env);
   const app = await buildApp();
 
+  let pollingReceiver: TelegramPollingReceiver | null = null;
+  if (config.TELEGRAM_MODE === "polling" && config.TELEGRAM_BOT_TOKEN) {
+    const botClient = new TelegramBotClient(config.TELEGRAM_BOT_TOKEN);
+    const linkingService = new TelegramLinkingService(
+      config.TELEGRAM_BOT_USERNAME || "DrivingExamMonitor_bot"
+    );
+    const router = new TelegramCommandRouter(botClient, linkingService);
+    pollingReceiver = new TelegramPollingReceiver(botClient, router);
+    await pollingReceiver.start();
+  }
+
   async function shutdown(signal: string) {
     log.info(`Received ${signal}. Shutting down API gracefully...`);
+    if (pollingReceiver) {
+      pollingReceiver.stop();
+    }
     await app.close();
     await closeDatabaseConnection();
     log.info("API server stopped.");
