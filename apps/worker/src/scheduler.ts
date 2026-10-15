@@ -31,9 +31,13 @@ export class WorkerScheduler {
   constructor(private options: SchedulerOptions = {}) {
     this.workerId = options.workerId || `worker-${generateId()}`;
     this.leaseManager = new LeaseManager();
+    const timeoutMs = process.env.REQUEST_TIMEOUT_MS
+      ? parseInt(process.env.REQUEST_TIMEOUT_MS, 10)
+      : 25000;
     this.examProvider = new ExamProvider({
       allowedHosts: options.allowedHosts,
       allowHttpForTesting: options.allowHttpForTesting,
+      timeoutMs,
     });
 
     const botToken = options.telegramBotToken || process.env.TELEGRAM_BOT_TOKEN;

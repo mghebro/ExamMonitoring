@@ -34,7 +34,7 @@ export class ExamProvider {
     options: FetchOptions = {}
   ): Promise<FetchAvailabilityResult> {
     const mergedOptions = { ...this.defaultOptions, ...options };
-    const timeoutMs = mergedOptions.timeoutMs ?? 10000;
+    const timeoutMs = mergedOptions.timeoutMs ?? 25000;
     const checkedAt = new Date().toISOString();
 
     // 1. SSRF and Domain Validation
@@ -70,7 +70,11 @@ export class ExamProvider {
         method: "GET",
         headers: {
           Accept: "application/json, text/plain, */*",
-          "User-Agent": "ExamMonitor/1.0 (+https://github.com/exam-monitor)",
+          "Accept-Language": "en-US,en;q=0.9,ka;q=0.8",
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
           ...mergedOptions.headers,
         },
         signal: controller.signal,
