@@ -23,6 +23,8 @@ coverage/
 playwright-report/
 test-results/
 *.log
+supabase/.temp/
+supabase/.branches/
 
 # System and editor files
 .DS_Store

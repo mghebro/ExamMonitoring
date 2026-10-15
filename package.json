@@ -19,11 +19,14 @@
     "typecheck": "pnpm -r run typecheck",
     "lint": "pnpm -r run lint",
     "db:generate": "pnpm --filter=@exam-monitor/database db:generate",
-    "db:migrate": "pnpm --filter=@exam-monitor/database db:migrate"
+    "db:migrate": "pnpm --filter=@exam-monitor/database db:migrate",
+    "db:push": "supabase db push --include-seed --include-all",
+    "db:types": "supabase gen types --linked --schema public | Set-Content -Encoding utf8 packages/database/src/supabase-types.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.50.1",
     "@types/node": "^22.13.1",
+    "supabase": "^2.121.0",
     "typescript": "^5.7.3",
     "vitest": "^3.0.5"
   }

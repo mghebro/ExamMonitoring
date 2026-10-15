@@ -1,7 +1,7 @@
 # Supabase configuration for local development and migration management
 # For documentation see: https://supabase.com/docs/guides/cli/config
 
-project_id = "exam-monitor"
+project_id = "allfabyruhoonwnoliul"
 
 [api]
 enabled = true
