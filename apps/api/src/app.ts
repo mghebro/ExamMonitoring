@@ -7,6 +7,7 @@ import { authPlugin } from "./plugins/auth.js";
 import { swaggerPlugin } from "./plugins/swagger.js";
 import { healthRoutes } from "./routes/health.js";
 import { authRoutes } from "./routes/auth.js";
+import { telegramRoutes } from "./routes/telegram.js";
 
 declare module "fastify" {
   interface FastifyInstance {
@@ -50,6 +51,9 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // Auth & Invitations Routes
   await app.register(authRoutes);
+
+  // Telegram Linking Routes
+  await app.register(telegramRoutes);
 
   // Global Error Handler
   app.setErrorHandler((error: any, request, reply) => {
