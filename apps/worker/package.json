@@ -1,0 +1,27 @@
+{
+  "name": "@exam-monitor/worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts"
+  },
+  "dependencies": {
+    "@exam-monitor/config": "workspace:*",
+    "@exam-monitor/database": "workspace:*",
+    "@exam-monitor/exam-provider": "workspace:*",
+    "@exam-monitor/notifications": "workspace:*",
+    "@exam-monitor/shared": "workspace:*",
+    "drizzle-orm": "^0.39.3",
+    "postgres": "^3.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
