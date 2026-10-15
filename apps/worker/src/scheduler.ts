@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { getDb, examTargets } from "@exam-monitor/database";
 import { ExamProvider } from "@exam-monitor/exam-provider";
+import { TelegramBotClient, NotificationOutboxDispatcher } from "@exam-monitor/notifications";
 import { generateId, logger } from "@exam-monitor/shared";
 import { LeaseManager } from "./lease.js";
 import { TargetPoller } from "./poller.js";
@@ -12,6 +13,7 @@ export interface SchedulerOptions {
   leaseDurationSeconds?: number;
   allowedHosts?: string[];
   allowHttpForTesting?: boolean;
+  telegramBotToken?: string;
 }
 
 export class WorkerScheduler {
@@ -19,10 +21,12 @@ export class WorkerScheduler {
   private workerId: string;
   private leaseManager: LeaseManager;
   private examProvider: ExamProvider;
+  private outboxDispatcher: NotificationOutboxDispatcher | null = null;
   private isRunning = false;
   private pollers = new Map<string, TargetPoller>();
   private activeTimers = new Map<string, NodeJS.Timeout>();
   private targetRefreshInterval: NodeJS.Timeout | null = null;
+  private outboxInterval: NodeJS.Timeout | null = null;
 
   constructor(private options: SchedulerOptions = {}) {
     this.workerId = options.workerId || `worker-${generateId()}`;
@@ -31,6 +35,12 @@ export class WorkerScheduler {
       allowedHosts: options.allowedHosts,
       allowHttpForTesting: options.allowHttpForTesting,
     });
+
+    const botToken = options.telegramBotToken || process.env.TELEGRAM_BOT_TOKEN;
+    if (botToken) {
+      const botClient = new TelegramBotClient(botToken);
+      this.outboxDispatcher = new NotificationOutboxDispatcher(botClient);
+    }
   }
 
   getWorkerId(): string {
@@ -54,6 +64,19 @@ export class WorkerScheduler {
         await this.refreshTargets();
       }
     }, 30000);
+
+    // Continuous outbox delivery loop every 5 seconds
+    if (this.outboxDispatcher) {
+      this.outboxInterval = setInterval(async () => {
+        if (this.isRunning && this.outboxDispatcher) {
+          try {
+            await this.outboxDispatcher.dispatchPendingOutbox();
+          } catch (err: unknown) {
+            this.log.error("Outbox dispatch failure", { error: String(err) });
+          }
+        }
+      }, 5000);
+    }
   }
 
   /**
@@ -67,6 +90,11 @@ export class WorkerScheduler {
     if (this.targetRefreshInterval) {
       clearInterval(this.targetRefreshInterval);
       this.targetRefreshInterval = null;
+    }
+
+    if (this.outboxInterval) {
+      clearInterval(this.outboxInterval);
+      this.outboxInterval = null;
     }
 
     for (const [targetId, timer] of this.activeTimers.entries()) {
