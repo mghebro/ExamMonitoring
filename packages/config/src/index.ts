@@ -1,4 +1,29 @@
 import { z } from "zod";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
+
+export function loadEnvFileIfPresent(): void {
+  if (typeof process.loadEnvFile === "function") {
+    const candidates = [
+      resolve(process.cwd(), ".env"),
+      resolve(process.cwd(), "../../.env"),
+      resolve(process.cwd(), "../.env"),
+    ];
+    for (const file of candidates) {
+      if (existsSync(file)) {
+        try {
+          process.loadEnvFile(file);
+          break;
+        } catch {
+          // Ignore
+        }
+      }
+    }
+  }
+}
+
+// Try auto-loading .env on import
+loadEnvFileIfPresent();
 
 /**
  * Common application environment schema
