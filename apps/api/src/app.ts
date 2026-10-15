@@ -10,6 +10,8 @@ import { authRoutes } from "./routes/auth.js";
 import { telegramRoutes } from "./routes/telegram.js";
 import { telegramWebhookRoutes } from "./routes/telegram-webhook.js";
 import { notificationRoutes } from "./routes/notifications.js";
+import { targetRoutes } from "./routes/targets.js";
+import { benchmarkRoutes } from "./routes/benchmarks.js";
 
 declare module "fastify" {
   interface FastifyInstance {
@@ -62,6 +64,12 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // Notification History & Test Alert Routes
   await app.register(notificationRoutes);
+
+  // Targets & Monitoring Configuration Routes
+  await app.register(targetRoutes);
+
+  // Benchmarking & Simulation Routes
+  await app.register(benchmarkRoutes);
 
   // Global Error Handler
   app.setErrorHandler((error: any, request, reply) => {
