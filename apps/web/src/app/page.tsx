@@ -21,6 +21,14 @@ import {
   Zap,
 } from "lucide-react";
 
+function getApiBaseUrl(): string {
+  return (
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:3001"
+  );
+}
+
 interface TargetData {
   id: string;
   name: string;
@@ -84,7 +92,7 @@ export default function DashboardPage() {
         return;
       }
 
-      const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+      const apiBase = getApiBaseUrl();
       const headers = { Authorization: `Bearer ${session.access_token}` };
 
       // 1. Fetch user profile & telegram status
@@ -134,7 +142,7 @@ export default function DashboardPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+      const apiBase = getApiBaseUrl();
       const res = await fetch(`${apiBase}/api/v1/telegram/link-token`, {
         method: "POST",
         headers: { Authorization: `Bearer ${session.access_token}` },
@@ -159,7 +167,7 @@ export default function DashboardPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+      const apiBase = getApiBaseUrl();
       const res = await fetch(`${apiBase}/api/v1/notifications/test`, {
         method: "POST",
         headers: { Authorization: `Bearer ${session.access_token}` },
@@ -186,7 +194,7 @@ export default function DashboardPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+      const apiBase = getApiBaseUrl();
       await fetch(`${apiBase}/api/v1/telegram/unlink`, {
         method: "POST",
         headers: { Authorization: `Bearer ${session.access_token}` },
@@ -206,7 +214,7 @@ export default function DashboardPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+      const apiBase = getApiBaseUrl();
       const res = await fetch(`${apiBase}/api/v1/invitations`, {
         method: "POST",
         headers: {
