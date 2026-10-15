@@ -1,11 +1,11 @@
 services:
-  # 1. Fastify REST API Service
+  # Unified Web Service (API + Background Worker) running on Render Free Tier
   - type: web
-    name: exam-monitor-api
+    name: exam-monitor-backend
     runtime: node
-    plan: starter
-    buildCommand: pnpm install && pnpm --filter=@exam-monitor/api build
-    startCommand: node apps/api/dist/index.js
+    plan: free
+    buildCommand: pnpm install && pnpm build
+    startCommand: node scripts/start-all.js
     healthCheckPath: /health
     autoDeploy: true
     envVars:
@@ -23,6 +23,14 @@ services:
         sync: false
       - key: NEXT_PUBLIC_APP_URL
         sync: false
+      - key: EXAM_API_ENDPOINT
+        value: https://exam-booking.sa.gov.ge/practical/dates?CategoryCode=4&CenterId=7&isFirstAttempt=0
+      - key: ALLOWED_EXAM_HOSTS
+        value: exam-booking.sa.gov.ge,localhost,127.0.0.1
+      - key: POLL_INTERVAL_SECONDS
+        value: 60
+      - key: MIN_POLL_INTERVAL_SECONDS
+        value: 30
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: TELEGRAM_BOT_USERNAME
@@ -32,32 +40,4 @@ services:
       - key: TELEGRAM_WEBHOOK_URL
         sync: false
       - key: TELEGRAM_WEBHOOK_SECRET
-        sync: false
-
-  # 2. Continuous Background Polling Worker
-  - type: worker
-    name: exam-monitor-worker
-    runtime: node
-    plan: starter
-    buildCommand: pnpm install && pnpm --filter=@exam-monitor/worker build
-    startCommand: node apps/worker/dist/index.js
-    autoDeploy: true
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: SUPABASE_URL
-        sync: false
-      - key: SUPABASE_SERVICE_ROLE_KEY
-        sync: false
-      - key: DATABASE_URL
-        sync: false
-      - key: EXAM_API_ENDPOINT
-        sync: false
-      - key: ALLOWED_EXAM_HOSTS
-        value: exam-booking.sa.gov.ge,localhost,127.0.0.1
-      - key: POLL_INTERVAL_SECONDS
-        value: 60
-      - key: MIN_POLL_INTERVAL_SECONDS
-        value: 30
-      - key: TELEGRAM_BOT_TOKEN
         sync: false
