@@ -8,6 +8,7 @@ import { swaggerPlugin } from "./plugins/swagger.js";
 import { healthRoutes } from "./routes/health.js";
 import { authRoutes } from "./routes/auth.js";
 import { telegramRoutes } from "./routes/telegram.js";
+import { telegramWebhookRoutes } from "./routes/telegram-webhook.js";
 
 declare module "fastify" {
   interface FastifyInstance {
@@ -54,6 +55,9 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // Telegram Linking Routes
   await app.register(telegramRoutes);
+
+  // Telegram Webhook Receiver
+  await app.register(telegramWebhookRoutes);
 
   // Global Error Handler
   app.setErrorHandler((error: any, request, reply) => {
