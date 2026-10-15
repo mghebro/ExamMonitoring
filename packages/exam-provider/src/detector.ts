@@ -66,7 +66,7 @@ export function createEventFromTransition(
   bookingUrl: string
 ): MonitoringEventPayload | null {
   if (transition.newSlots.length > 0) {
-    const dates = transition.newSlots.map((s) => s.bookingDate);
+    const dates = transition.newSlots.map((s: ExamSlot) => s.bookingDate);
     return {
       targetId: transition.targetId,
       eventType: "NEW_SLOTS_DETECTED",

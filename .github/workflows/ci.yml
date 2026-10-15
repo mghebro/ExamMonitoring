@@ -72,11 +72,11 @@ jobs:
       - name: Validate database migrations
         run: pnpm test packages/database/src/__tests__/migrations.test.ts
 
+      - name: Build all packages & applications
+        run: pnpm build
+
       - name: Typecheck all workspaces
         run: pnpm typecheck
 
       - name: Run automated test suites
         run: pnpm test
-
-      - name: Build all packages & applications
-        run: pnpm build
