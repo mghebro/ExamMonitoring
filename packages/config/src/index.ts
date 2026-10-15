@@ -99,7 +99,7 @@ export const ApiConfigSchema = CombinedBackendBase.refine(
 
 export type ApiConfig = z.infer<typeof ApiConfigSchema>;
 
-export const WorkerConfigSchema = ApiConfigSchema;
+export const WorkerConfigSchema = CombinedBackendBase;
 export type WorkerConfig = z.infer<typeof WorkerConfigSchema>;
 
 /**
