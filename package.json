@@ -7,6 +7,7 @@
   "type": "module",
   "packageManager": "pnpm@12.4.2",
   "scripts": {
+    "start": "node scripts/start-all.js",
     "build": "pnpm -r --filter=!tests run build",
     "dev": "pnpm -r --parallel run dev",
     "dev:api": "pnpm --filter=@exam-monitor/api dev",
