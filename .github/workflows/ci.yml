@@ -1,0 +1,82 @@
+name: CI Quality Gates
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Lint, Typecheck, Test & Build
+    runs-on: ubuntu-latest
+
+    env:
+      NODE_ENV: test
+      PORT: 3001
+      WEB_PORT: 3000
+      API_BASE_URL: http://localhost:3001
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_SUPABASE_URL: https://mock-ci-project.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ci-anon-token-validation-key
+      SUPABASE_URL: https://mock-ci-project.supabase.co
+      SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ci-anon-token-validation-key
+      SUPABASE_SERVICE_ROLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ci-service-role-token-validation-key
+      DATABASE_URL: postgresql://postgres:postgres@localhost:54322/postgres
+      EXAM_API_ENDPOINT: https://exam-booking.sa.gov.ge/practical/dates?CategoryCode=4&CenterId=7&isFirstAttempt=0
+      ALLOWED_EXAM_HOSTS: exam-booking.sa.gov.ge,localhost,127.0.0.1
+      POLL_INTERVAL_SECONDS: 60
+      MIN_POLL_INTERVAL_SECONDS: 30
+      REQUEST_TIMEOUT_MS: 10000
+      MAX_BACKOFF_SECONDS: 300
+      WORKER_LEASE_DURATION_SECONDS: 30
+      TELEGRAM_BOT_TOKEN: 123456789:ABCdefGHIjklMNOpqrSTUvwxYZ_test
+      TELEGRAM_MODE: polling
+      TELEGRAM_LINKING_TOKEN_TTL_SECONDS: 600
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.4.2
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate database migrations
+        run: pnpm test packages/database/src/__tests__/migrations.test.ts
+
+      - name: Typecheck all workspaces
+        run: pnpm typecheck
+
+      - name: Run automated test suites
+        run: pnpm test
+
+      - name: Build all packages & applications
+        run: pnpm build
