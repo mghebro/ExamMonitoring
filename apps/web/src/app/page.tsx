@@ -33,6 +33,7 @@ interface TargetData {
   id: string;
   name: string;
   endpointUrl: string;
+  categoryCode?: string;
   pollIntervalSeconds: number;
   isActive: boolean;
   state?: {
@@ -70,6 +71,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfileData | null>(null);
   const [targets, setTargets] = useState<TargetData[]>([]);
+  const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [linkingLink, setLinkingLink] = useState<string | null>(null);
   const [linkingLoading, setLinkingLoading] = useState(false);
@@ -245,7 +247,11 @@ export default function DashboardPage() {
     );
   }
 
-  const primaryTarget = targets[0] || null;
+  const primaryTarget =
+    (selectedTargetId ? targets.find((t) => t.id === selectedTargetId) : null) ||
+    targets.find((t) => t.categoryCode === "4") ||
+    targets[0] ||
+    null;
   const targetState = primaryTarget?.state;
   const activeSlots = primaryTarget?.slots.filter((s) => s.isAvailable) || [];
 
@@ -297,6 +303,40 @@ export default function DashboardPage() {
           <div className="p-4 bg-emerald-950/60 border border-emerald-800 text-emerald-200 rounded-xl text-sm flex items-center space-x-2">
             <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
             <span>{testSuccess}</span>
+          </div>
+        )}
+
+        {/* Category Switcher Tabs */}
+        {targets.length > 1 && (
+          <div className="flex items-center space-x-3 bg-slate-900 border border-slate-800 p-1.5 rounded-2xl w-fit">
+            <span className="text-xs font-semibold text-slate-400 px-3 uppercase tracking-wider">
+              კატეგორია:
+            </span>
+            {targets.map((t) => {
+              const isSelected = t.id === primaryTarget?.id;
+              const isCat4 = t.categoryCode === "4";
+              const label = isCat4 ? "🚗 ავტომატიკა (Category 4)" : "⚙️ მექანიკა (Category 3)";
+              const activeCount = t.slots.filter((s) => s.isAvailable).length;
+
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setSelectedTargetId(t.id)}
+                  className={`px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center space-x-2 ${
+                    isSelected
+                      ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800"
+                  }`}
+                >
+                  <span>{label}</span>
+                  {activeCount > 0 && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                      {activeCount} ღია
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
 
