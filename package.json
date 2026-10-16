@@ -22,11 +22,19 @@
     "db:generate": "pnpm --filter=@exam-monitor/database db:generate",
     "db:migrate": "pnpm --filter=@exam-monitor/database db:migrate",
     "db:push": "supabase db push --include-seed --include-all",
-    "db:types": "supabase gen types --linked --schema public | Set-Content -Encoding utf8 packages/database/src/supabase-types.ts"
+    "db:types": "supabase gen types --linked --schema public | Set-Content -Encoding utf8 packages/database/src/supabase-types.ts",
+    "pm2:start": "pm2 start ecosystem.config.cjs",
+    "pm2:start:backend": "pm2 start ecosystem.config.cjs --only exam-api,exam-worker",
+    "pm2:stop": "pm2 stop ecosystem.config.cjs",
+    "pm2:restart": "pm2 restart ecosystem.config.cjs",
+    "pm2:status": "pm2 status",
+    "pm2:logs": "pm2 logs",
+    "pm2:monit": "pm2 monit"
   },
   "devDependencies": {
     "@playwright/test": "^1.50.1",
     "@types/node": "^22.13.1",
+    "pm2": "^7.0.4",
     "supabase": "^2.121.0",
     "typescript": "^5.7.3",
     "vitest": "^3.0.5"
