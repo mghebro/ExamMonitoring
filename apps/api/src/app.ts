@@ -27,15 +27,44 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // Security Headers
   await app.register(fastifyHelmet, {
-    contentSecurityPolicy: process.env.NODE_ENV === "production",
+    contentSecurityPolicy: process.env.NODE_ENV === "production" ? {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        connectSrc: ["'self'", "*"],
+      },
+    } : false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
   });
 
   // CORS configuration
-  const allowedOrigin = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const configuredAppUrl = process.env.NEXT_PUBLIC_APP_URL;
   await app.register(fastifyCors, {
-    origin: [allowedOrigin, "http://localhost:3000", "http://127.0.0.1:3000"],
+    origin: (origin, cb) => {
+      // Allow requests with no origin (curl, server-to-server, mobile)
+      if (!origin) return cb(null, true);
+
+      // Match localhost, 127.0.0.1, LAN private IPs (192.168.x.x, 10.x.x.x, 172.16-31.x.x) on any port
+      const isLocalOrLan =
+        /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+)(:\d+)?$/.test(
+          origin
+        );
+
+      const isConfiguredOrigin =
+        configuredAppUrl && origin.startsWith(configuredAppUrl);
+
+      const isVercel = origin.endsWith(".vercel.app");
+
+      if (isLocalOrLan || isConfiguredOrigin || isVercel) {
+        return cb(null, true);
+      }
+
+      return cb(null, false);
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   });
 
   // Rate Limiting (100 requests per minute per IP)

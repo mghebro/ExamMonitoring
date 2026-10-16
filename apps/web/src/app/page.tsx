@@ -22,11 +22,14 @@ import {
 } from "lucide-react";
 
 function getApiBaseUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_API_BASE_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    "http://localhost:3001"
-  );
+  // If explicitly configured with an external production domain (e.g. Vercel -> Render backend)
+  const envUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL;
+  if (envUrl && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
+    return envUrl;
+  }
+  // For local / self-hosted environments (same host or LAN), use relative path
+  // proxied seamlessly through Next.js rewrites to prevent CORS issues completely
+  return "";
 }
 
 interface TargetData {
