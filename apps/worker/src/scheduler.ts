@@ -1,13 +1,7 @@
 import { eq } from "drizzle-orm";
 import { getDb, examTargets } from "@exam-monitor/database";
 import { ExamProvider } from "@exam-monitor/exam-provider";
-import {
-  TelegramBotClient,
-  NotificationOutboxDispatcher,
-  TelegramLinkingService,
-  TelegramCommandRouter,
-  TelegramPollingReceiver,
-} from "@exam-monitor/notifications";
+import { TelegramBotClient, NotificationOutboxDispatcher } from "@exam-monitor/notifications";
 import { generateId, logger } from "@exam-monitor/shared";
 import { LeaseManager } from "./lease.js";
 import { TargetPoller } from "./poller.js";
@@ -28,7 +22,6 @@ export class WorkerScheduler {
   private leaseManager: LeaseManager;
   private examProvider: ExamProvider;
   private outboxDispatcher: NotificationOutboxDispatcher | null = null;
-  private pollingReceiver: TelegramPollingReceiver | null = null;
   private isRunning = false;
   private pollers = new Map<string, TargetPoller>();
   private activeTimers = new Map<string, NodeJS.Timeout>();
@@ -51,13 +44,6 @@ export class WorkerScheduler {
     if (botToken) {
       const botClient = new TelegramBotClient(botToken);
       this.outboxDispatcher = new NotificationOutboxDispatcher(botClient);
-
-      if (process.env.TELEGRAM_MODE === "polling") {
-        const botUsername = process.env.TELEGRAM_BOT_USERNAME || "DrivingExamMonitor_bot";
-        const linkingService = new TelegramLinkingService(botUsername);
-        const router = new TelegramCommandRouter(botClient, linkingService);
-        this.pollingReceiver = new TelegramPollingReceiver(botClient, router);
-      }
     }
   }
 
@@ -95,11 +81,6 @@ export class WorkerScheduler {
         }
       }, 5000);
     }
-
-    // Start Telegram long polling receiver if configured
-    if (this.pollingReceiver) {
-      await this.pollingReceiver.start();
-    }
   }
 
   /**
@@ -109,11 +90,6 @@ export class WorkerScheduler {
     if (!this.isRunning) return;
     this.log.info(`Stopping WorkerScheduler [${this.workerId}]...`);
     this.isRunning = false;
-
-    if (this.pollingReceiver) {
-      this.pollingReceiver.stop();
-      this.pollingReceiver = null;
-    }
 
     if (this.targetRefreshInterval) {
       clearInterval(this.targetRefreshInterval);
