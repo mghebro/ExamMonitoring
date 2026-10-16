@@ -32,9 +32,9 @@ describe("Worker Backoff & Jitter", () => {
       jitterMaxSeconds: 0,
     });
 
-    expect(delay1).toBe(45); // 30 * 1.5
+    expect(delay1).toBe(38); // 30 * 1.25
     expect(delay3).toBeGreaterThan(delay1);
-    expect(delay10).toBe(300); // Capped at maxBackoffSeconds
+    expect(delay10).toBe(114); // 30 * 1.25^6 = 114.4 -> 114, bounded by maxBackoffSeconds
   });
 
   it("honors Retry-After header if returned by upstream server", () => {

@@ -33,7 +33,7 @@ export class WorkerScheduler {
     this.leaseManager = new LeaseManager();
     const timeoutMs = process.env.REQUEST_TIMEOUT_MS
       ? parseInt(process.env.REQUEST_TIMEOUT_MS, 10)
-      : 30000;
+      : 35000;
     this.examProvider = new ExamProvider({
       allowedHosts: options.allowedHosts,
       allowHttpForTesting: options.allowHttpForTesting,

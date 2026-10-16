@@ -27,11 +27,11 @@ export function computeBackoffDelay(options: {
     return baseIntervalSeconds;
   }
 
-  // 3. Exponential backoff: base * 1.5^(failures - 1)
-  const multiplier = Math.pow(1.5, Math.min(consecutiveFailures, 8));
+  // 3. Responsive backoff for exam monitoring: base * 1.25^(failures - 1)
+  const multiplier = Math.pow(1.25, Math.min(consecutiveFailures, 6));
   const rawBackoff = baseIntervalSeconds * multiplier;
 
-  // 4. Add random jitter to avoid thundering herd across workers
+  // 4. Add small random jitter to avoid thundering herd across workers
   const jitter = Math.random() * jitterMaxSeconds;
 
   const totalDelay = Math.min(rawBackoff + jitter, maxBackoffSeconds);
