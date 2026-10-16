@@ -37,7 +37,8 @@ export class TelegramLinkingService {
    */
   async generateLinkingToken(
     userId: string,
-    ttlSeconds = 600
+    ttlSeconds = 600,
+    subscribedCategories?: string
   ): Promise<CreateLinkingTokenResult> {
     const rawToken = generateSecureLinkingToken(32);
     const tokenHash = hashLinkingToken(rawToken);
@@ -61,6 +62,7 @@ export class TelegramLinkingService {
       id: generateId(),
       userId,
       tokenHash,
+      subscribedCategories: subscribedCategories ?? null,
       expiresAt,
     });
 
@@ -137,6 +139,7 @@ export class TelegramLinkingService {
           telegramUserId: telegramUser.id,
           telegramChatId: telegramUser.chatId,
           telegramUsername: telegramUser.username ?? null,
+          subscribedCategories: tokenRecord.subscribedCategories ?? null,
           isSubscribed: true,
           linkedAt: new Date(),
           updatedAt: new Date(),
@@ -147,6 +150,7 @@ export class TelegramLinkingService {
             telegramUserId: telegramUser.id,
             telegramChatId: telegramUser.chatId,
             telegramUsername: telegramUser.username ?? null,
+            subscribedCategories: tokenRecord.subscribedCategories ?? null,
             isSubscribed: true,
             updatedAt: new Date(),
           },

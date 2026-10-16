@@ -211,13 +211,19 @@ export class TargetPoller {
             })
             .returning();
 
-          // Queue outbox messages for all subscribed Telegram users
+          // Queue outbox messages for subscribed Telegram users matching this target's category
           const subscribers = await tx
             .select()
             .from(telegramLinks)
             .where(eq(telegramLinks.isSubscribed, true));
 
-          for (const sub of subscribers) {
+          const matchingSubscribers = subscribers.filter((sub) => {
+            if (!sub.subscribedCategories) return true; // Default: receive all
+            const allowed = sub.subscribedCategories.split(",").map((c) => c.trim());
+            return allowed.includes(target.categoryCode);
+          });
+
+          for (const sub of matchingSubscribers) {
             const fullMessage = [
               `🔔 *${eventPayload.title}*`,
               ``,

@@ -188,6 +188,7 @@ export const telegramLinks = pgTable(
     telegramUserId: bigint("telegram_user_id", { mode: "number" }).notNull().unique(),
     telegramChatId: bigint("telegram_chat_id", { mode: "number" }).notNull(),
     telegramUsername: text("telegram_username"),
+    subscribedCategories: text("subscribed_categories"),
     isSubscribed: boolean("is_subscribed").default(true).notNull(),
     linkedAt: timestamp("linked_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -209,6 +210,7 @@ export const telegramLinkingTokens = pgTable(
       .notNull()
       .references(() => profiles.id, { onDelete: "cascade" }),
     tokenHash: text("token_hash").notNull().unique(),
+    subscribedCategories: text("subscribed_categories"),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     usedAt: timestamp("used_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
