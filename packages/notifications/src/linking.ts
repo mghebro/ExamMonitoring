@@ -3,6 +3,7 @@ import {
   getDb,
   telegramLinkingTokens,
   telegramLinks,
+  profiles,
 } from "@exam-monitor/database";
 import {
   generateSecureLinkingToken,
@@ -46,6 +47,16 @@ export class TelegramLinkingService {
 
     const db = getDb();
 
+    let categories = subscribedCategories;
+    if (!categories) {
+      const [profile] = await db
+        .select({ preferredCategory: profiles.preferredCategory })
+        .from(profiles)
+        .where(eq(profiles.id, userId))
+        .limit(1);
+      categories = profile?.preferredCategory || "4";
+    }
+
     // Invalidate any existing unused tokens for this user
     await db
       .update(telegramLinkingTokens)
@@ -62,7 +73,7 @@ export class TelegramLinkingService {
       id: generateId(),
       userId,
       tokenHash,
-      subscribedCategories: subscribedCategories ?? null,
+      subscribedCategories: categories,
       expiresAt,
     });
 
@@ -130,6 +141,16 @@ export class TelegramLinkingService {
         .set({ usedAt: new Date() })
         .where(eq(telegramLinkingTokens.id, tokenRecord.id));
 
+      let resolvedCategory = tokenRecord.subscribedCategories;
+      if (!resolvedCategory) {
+        const [userProfile] = await tx
+          .select({ preferredCategory: profiles.preferredCategory })
+          .from(profiles)
+          .where(eq(profiles.id, tokenRecord.userId))
+          .limit(1);
+        resolvedCategory = userProfile?.preferredCategory ?? "4";
+      }
+
       // 2. Upsert telegram_links
       await tx
         .insert(telegramLinks)
@@ -139,7 +160,7 @@ export class TelegramLinkingService {
           telegramUserId: telegramUser.id,
           telegramChatId: telegramUser.chatId,
           telegramUsername: telegramUser.username ?? null,
-          subscribedCategories: tokenRecord.subscribedCategories ?? null,
+          subscribedCategories: resolvedCategory,
           isSubscribed: true,
           linkedAt: new Date(),
           updatedAt: new Date(),
@@ -150,7 +171,7 @@ export class TelegramLinkingService {
             telegramUserId: telegramUser.id,
             telegramChatId: telegramUser.chatId,
             telegramUsername: telegramUser.username ?? null,
-            subscribedCategories: tokenRecord.subscribedCategories ?? null,
+            subscribedCategories: resolvedCategory,
             isSubscribed: true,
             updatedAt: new Date(),
           },

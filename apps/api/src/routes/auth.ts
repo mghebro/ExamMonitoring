@@ -59,6 +59,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
           email: user.email,
           role: profile?.role || user.role,
           fullName: profile?.fullName ?? null,
+          preferredCategory: profile?.preferredCategory || "4",
           createdAt: profile?.createdAt ?? null,
         },
         telegram: {
@@ -66,13 +67,57 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
           telegramUserId: telegramLink?.telegramUserId ?? null,
           telegramUsername: telegramLink?.telegramUsername ?? null,
           isSubscribed: telegramLink?.isSubscribed ?? false,
+          subscribedCategories: telegramLink?.subscribedCategories || profile?.preferredCategory || "4",
           linkedAt: telegramLink?.linkedAt ?? null,
         },
         preferences: {
+          preferredCategory: profile?.preferredCategory || "4",
           notifyOnAvailable: pref?.notifyOnAvailable ?? true,
           quietHoursStart: pref?.quietHoursStart ?? null,
           quietHoursEnd: pref?.quietHoursEnd ?? null,
         },
+      };
+    }
+  );
+
+  /**
+   * PUT /api/v1/auth/preferences - Update user's preferred category and sync with Telegram
+   */
+  fastify.put(
+    "/api/v1/auth/preferences",
+    {
+      preHandler: [fastify.authenticate],
+    },
+    async (request, reply) => {
+      const user = request.user!;
+      const db = getDb();
+      const body = request.body as { preferredCategory?: string };
+
+      if (!body.preferredCategory) {
+        throw new ValidationError("Missing preferredCategory.");
+      }
+
+      const category = body.preferredCategory.trim();
+      const allowedCategories = ["3", "4", "3,4", "4,3"];
+      if (!allowedCategories.includes(category)) {
+        throw new ValidationError("Invalid category. Must be '3' (მექანიკა), '4' (ავტომატიკა), or '3,4'.");
+      }
+
+      // Update profiles
+      await db
+        .update(profiles)
+        .set({ preferredCategory: category, updatedAt: new Date() })
+        .where(eq(profiles.id, user.id));
+
+      // Synchronize telegram_links
+      await db
+        .update(telegramLinks)
+        .set({ subscribedCategories: category, updatedAt: new Date() })
+        .where(eq(telegramLinks.userId, user.id));
+
+      return {
+        success: true,
+        preferredCategory: category,
       };
     }
   );

@@ -22,6 +22,7 @@ export const profiles = pgTable(
     email: text("email").notNull().unique(),
     role: text("role", { enum: ["admin", "user"] }).default("user").notNull(),
     fullName: text("full_name"),
+    preferredCategory: text("preferred_category").default("4").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },

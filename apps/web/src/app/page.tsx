@@ -58,12 +58,17 @@ interface UserProfileData {
     email: string;
     role: "admin" | "user";
     fullName: string | null;
+    preferredCategory?: string;
   };
   telegram: {
     isLinked: boolean;
     telegramUsername: string | null;
     telegramChatId?: number;
     isSubscribed: boolean;
+    subscribedCategories?: string;
+  };
+  preferences?: {
+    preferredCategory?: string;
   };
 }
 
@@ -236,6 +241,51 @@ export default function DashboardPage() {
     }
   };
 
+  const [updatingPref, setUpdatingPref] = useState(false);
+
+  const handleUpdatePreferredCategory = async (catCode: string) => {
+    setUpdatingPref(true);
+    try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const apiBase = getApiBaseUrl();
+      const res = await fetch(`${apiBase}/api/v1/auth/preferences`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ preferredCategory: catCode }),
+      });
+
+      if (res.ok) {
+        setProfile((prev) =>
+          prev
+            ? {
+                ...prev,
+                user: { ...prev.user, preferredCategory: catCode },
+                telegram: { ...prev.telegram, subscribedCategories: catCode },
+              }
+            : null
+        );
+        setTestSuccess(
+          `შენი ძირითადი კატეგორია ბაზაში შეინახა: ${
+            catCode === "4" ? "🚗 ავტომატიკა (Category 4)" : "⚙️ მექანიკა (Category 3)"
+          }`
+        );
+        setTimeout(() => setTestSuccess(null), 5000);
+      } else {
+        setErrorMsg("Failed to update preferred category.");
+      }
+    } catch (err: unknown) {
+      setErrorMsg("Network error updating preference.");
+    } finally {
+      setUpdatingPref(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-900 text-white">
@@ -247,8 +297,11 @@ export default function DashboardPage() {
     );
   }
 
+  const userPreferredCategory = profile?.user?.preferredCategory || "4";
+
   const primaryTarget =
     (selectedTargetId ? targets.find((t) => t.id === selectedTargetId) : null) ||
+    targets.find((t) => t.categoryCode === userPreferredCategory) ||
     targets.find((t) => t.categoryCode === "4") ||
     targets[0] ||
     null;
@@ -308,35 +361,62 @@ export default function DashboardPage() {
 
         {/* Category Switcher Tabs */}
         {targets.length > 1 && (
-          <div className="flex items-center space-x-3 bg-slate-900 border border-slate-800 p-1.5 rounded-2xl w-fit">
-            <span className="text-xs font-semibold text-slate-400 px-3 uppercase tracking-wider">
-              კატეგორია:
-            </span>
-            {targets.map((t) => {
-              const isSelected = t.id === primaryTarget?.id;
-              const isCat4 = t.categoryCode === "4";
-              const label = isCat4 ? "🚗 ავტომატიკა (Category 4)" : "⚙️ მექანიკა (Category 3)";
-              const activeCount = t.slots.filter((s) => s.isAvailable).length;
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900 border border-slate-800 p-2 rounded-2xl">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold text-slate-400 px-2 uppercase tracking-wider">
+                კატეგორია:
+              </span>
+              {targets.map((t) => {
+                const isSelected = t.id === primaryTarget?.id;
+                const isCat4 = t.categoryCode === "4";
+                const label = isCat4 ? "🚗 ავტომატიკა (Category 4)" : "⚙️ მექანიკა (Category 3)";
+                const isUserPreferred = (profile?.user?.preferredCategory || "4") === t.categoryCode;
+                const activeCount = t.slots.filter((s) => s.isAvailable).length;
 
-              return (
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => setSelectedTargetId(t.id)}
+                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center space-x-2 ${
+                      isSelected
+                        ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
+                        : "text-slate-400 hover:text-white hover:bg-slate-800"
+                    }`}
+                  >
+                    <span>{label}</span>
+                    {isUserPreferred && (
+                      <span className="text-[10px] bg-blue-950 text-blue-200 border border-blue-400/40 px-1.5 py-0.5 rounded font-bold">
+                        ⭐ ჩემი არჩევანი
+                      </span>
+                    )}
+                    {activeCount > 0 && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                        {activeCount} ღია
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {primaryTarget &&
+              primaryTarget.categoryCode &&
+              primaryTarget.categoryCode !== (profile?.user?.preferredCategory || "4") && (
                 <button
-                  key={t.id}
-                  onClick={() => setSelectedTargetId(t.id)}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center space-x-2 ${
-                    isSelected
-                      ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
-                      : "text-slate-400 hover:text-white hover:bg-slate-800"
-                  }`}
+                  onClick={() => handleUpdatePreferredCategory(primaryTarget.categoryCode!)}
+                  disabled={updatingPref}
+                  className="text-xs px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-xl transition flex items-center space-x-1.5"
                 >
-                  <span>{label}</span>
-                  {activeCount > 0 && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
-                      {activeCount} ღია
-                    </span>
-                  )}
+                  <Zap className="w-3.5 h-3.5 text-amber-400" />
+                  <span>
+                    {updatingPref
+                      ? "ინახება..."
+                      : `დააყენე ${
+                          primaryTarget.categoryCode === "4" ? "ავტომატიკა" : "მექანიკა"
+                        } ნაგულისხმევად`}
+                  </span>
                 </button>
-              );
-            })}
+              )}
           </div>
         )}
 
@@ -502,9 +582,17 @@ export default function DashboardPage() {
 
               {profile?.telegram.isLinked ? (
                 <div className="space-y-3">
-                  <div className="p-3 bg-slate-950 rounded-lg border border-slate-800 text-xs text-slate-300">
+                  <div className="p-3 bg-slate-950 rounded-lg border border-slate-800 text-xs text-slate-300 space-y-1">
                     <p><strong>Username:</strong> @{profile.telegram.telegramUsername || "Linked"}</p>
                     <p><strong>Notifications:</strong> {profile.telegram.isSubscribed ? "Active" : "Muted"}</p>
+                    <p>
+                      <strong>კატეგორიის შეტყობინებები:</strong>{" "}
+                      <span className="text-blue-400 font-semibold">
+                        {(profile.telegram.subscribedCategories || profile.user.preferredCategory) === "3"
+                          ? "⚙️ მექანიკა (Category 3)"
+                          : "🚗 ავტომატიკა (Category 4)"}
+                      </span>
+                    </p>
                   </div>
 
                   <div className="flex space-x-2">

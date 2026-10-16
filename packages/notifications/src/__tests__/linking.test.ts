@@ -62,6 +62,7 @@ vi.mock("@exam-monitor/database", () => ({
   }),
   telegramLinkingTokens: { tokenHash: "token_hash", id: "id", userId: "user_id", usedAt: "used_at" },
   telegramLinks: { userId: "user_id" },
+  profiles: { id: "id", preferredCategory: "preferred_category" },
 }));
 
 describe("Telegram Linking Service", () => {
