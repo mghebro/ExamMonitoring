@@ -195,9 +195,15 @@ export class TargetPoller {
             },
           });
 
-        // 7. If slots changed, create monitoring event & enqueue notifications
+        const transmissionName =
+          target.categoryCode === "3"
+            ? "მექანიკა"
+            : target.categoryCode === "4"
+              ? "ავტომატიკა"
+              : `კატეგორია ${target.categoryCode}`;
+
         const bookingUrl = process.env.EXAM_BOOKING_URL || "https://exam-booking.sa.gov.ge/practical-exam";
-        const eventPayload = createEventFromTransition(transition, bookingUrl);
+        const eventPayload = createEventFromTransition(transition, bookingUrl, transmissionName);
         if (eventPayload) {
           const [createdEvent] = await tx
             .insert(monitoringEvents)
@@ -227,11 +233,12 @@ export class TargetPoller {
             const fullMessage = [
               `🔔 *${eventPayload.title}*`,
               ``,
+              `🚗 *გადაცემათა კოლოფი:* ${transmissionName}`,
               `${eventPayload.message}`,
               ``,
-              `🔗 [Official Booking Link](${eventPayload.bookingUrl})`,
+              `🔗 [ოფიციალური ჯავშნის ბმული](${eventPayload.bookingUrl})`,
               ``,
-              `⚠️ _Note: Slots may be claimed quickly. This monitor alerts you to check the official portal immediately._`,
+              `⚠️ _შენიშვნა: ადგილები სწრაფად იჯავშნება! შეამოწმეთ პორტალი დაუყოვნებლივ._`,
             ].join("\n");
 
             await tx.insert(notificationOutbox).values({

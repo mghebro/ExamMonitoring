@@ -63,15 +63,17 @@ export interface MonitoringEventPayload {
  */
 export function createEventFromTransition(
   transition: SlotTransition,
-  bookingUrl: string
+  bookingUrl: string,
+  transmissionName?: string
 ): MonitoringEventPayload | null {
+  const label = transmissionName ? ` (${transmissionName})` : "";
   if (transition.newSlots.length > 0) {
     const dates = transition.newSlots.map((s: ExamSlot) => s.bookingDate);
     return {
       targetId: transition.targetId,
       eventType: "NEW_SLOTS_DETECTED",
-      title: `⚡ New Driving Exam Slots Available! (${dates.length} date${dates.length > 1 ? "s" : ""})`,
-      message: `Newly available dates detected: ${dates.join(", ")}.`,
+      title: `⚡ ახალი ადგილები!${label} (${dates.length} თარიღი)`,
+      message: `გამოჩნდა ახალი თარიღები${label}: ${dates.join(", ")}.`,
       availableDates: dates,
       bookingUrl,
     };
@@ -81,8 +83,8 @@ export function createEventFromTransition(
     return {
       targetId: transition.targetId,
       eventType: "ALL_SLOTS_REMOVED",
-      title: "ℹ️ Exam Slots No Longer Available",
-      message: "All previously available exam slots have been booked or removed.",
+      title: `ℹ️ ადგილები აღარ არის${label}`,
+      message: `ადრე გამოჩენილი ადგილები${label} უკვე დაჯავშნილია ან გაუქმდა.`,
       availableDates: [],
       bookingUrl,
     };
