@@ -34,7 +34,7 @@ export class ExamProvider {
     options: FetchOptions = {}
   ): Promise<FetchAvailabilityResult> {
     const mergedOptions = { ...this.defaultOptions, ...options };
-    const timeoutMs = mergedOptions.timeoutMs ?? 25000;
+    const timeoutMs = mergedOptions.timeoutMs ?? 30000;
     const checkedAt = new Date().toISOString();
 
     // 1. SSRF and Domain Validation
