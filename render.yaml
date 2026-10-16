@@ -39,4 +39,6 @@ services:
         sync: false
       - key: TELEGRAM_MODE
         value: polling
+      - key: EXAM_BOOKING_URL
+        value: https://exam-booking.sa.gov.ge/practical-exam
 

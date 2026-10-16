@@ -54,7 +54,7 @@ describe("End-to-End Monitoring & Alerting Flow", () => {
     expect(transition.newSlots).toHaveLength(2);
 
     // Step 3: Event payload generation
-    const bookingUrl = "https://exam-booking.sa.gov.ge/practical/dates?CategoryCode=4&CenterId=7&isFirstAttempt=0";
+    const bookingUrl = "https://exam-booking.sa.gov.ge/practical-exam";
     const event = createEventFromTransition(transition, bookingUrl);
 
     expect(event).not.toBeNull();

@@ -196,7 +196,8 @@ export class TargetPoller {
           });
 
         // 7. If slots changed, create monitoring event & enqueue notifications
-        const eventPayload = createEventFromTransition(transition, target.endpointUrl);
+        const bookingUrl = process.env.EXAM_BOOKING_URL || "https://exam-booking.sa.gov.ge/practical-exam";
+        const eventPayload = createEventFromTransition(transition, bookingUrl);
         if (eventPayload) {
           const [createdEvent] = await tx
             .insert(monitoringEvents)

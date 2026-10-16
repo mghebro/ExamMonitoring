@@ -63,6 +63,10 @@ export const MonitorEnvSchema = z.object({
   POLL_INTERVAL_SECONDS: z.coerce.number().int().min(5).default(60),
   MIN_POLL_INTERVAL_SECONDS: z.coerce.number().int().min(5).default(30),
   REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1000).max(60000).default(30000),
+  EXAM_BOOKING_URL: z
+    .string()
+    .url()
+    .default("https://exam-booking.sa.gov.ge/practical-exam"),
   MAX_BACKOFF_SECONDS: z.coerce.number().int().min(10).max(3600).default(300),
   WORKER_LEASE_DURATION_SECONDS: z.coerce.number().int().min(10).max(300).default(30),
 });

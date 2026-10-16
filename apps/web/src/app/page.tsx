@@ -379,17 +379,15 @@ export default function DashboardPage() {
                   <Calendar className="w-5 h-5 text-blue-400" />
                   <h2 className="text-base font-bold text-white">Detected Exam Dates & Slots</h2>
                 </div>
-                {primaryTarget?.endpointUrl && (
-                  <a
-                    href={primaryTarget.endpointUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center space-x-1.5 text-xs text-blue-400 hover:text-blue-300 font-medium"
-                  >
-                    <span>Open Official Portal</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
-                )}
+                <a
+                  href={process.env.NEXT_PUBLIC_EXAM_BOOKING_URL || "https://exam-booking.sa.gov.ge/practical-exam"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-1.5 text-xs text-blue-400 hover:text-blue-300 font-medium"
+                >
+                  <span>Open Official Portal</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
               </div>
 
               {activeSlots.length > 0 ? (

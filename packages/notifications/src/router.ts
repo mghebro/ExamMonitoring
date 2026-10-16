@@ -267,10 +267,13 @@ export class TelegramCommandRouter {
       return;
     }
 
+    const bookingUrl = process.env.EXAM_BOOKING_URL || "https://exam-booking.sa.gov.ge/practical-exam";
     const testMessage = [
       `🧪 *Test Notification*`,
       ``,
       `Delivery channel verified successfully! When newly available exam slots are detected, alerts will appear like this.`,
+      ``,
+      `🔗 [Official Booking Link](${bookingUrl})`,
       ``,
       `Detection time: ${new Date().toISOString()}`,
       `Account: @${link.telegramUsername || senderId}`,
